@@ -23,9 +23,6 @@ class ServerAction(object):
 @Singleton
 class ChatServer(object):
 
-    # def __init__(self, flask_: Flask):
-    #     self.flask_ = flask_
-
     def run(self, flask_, *args, **kwargs):
         flask_.run(*args, **kwargs)
 
