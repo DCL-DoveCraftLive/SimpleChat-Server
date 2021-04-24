@@ -9,9 +9,9 @@ class ServerAction(object):
     def __init__(self, action):
         self.action = action
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         try:
-            answer = self.action()
+            answer = self.action(*args, **kwargs)
             self.response = Response(answer, status=200, headers={})
         except Exception:
             self.response = Response(dumps({'error': format_exc()}),

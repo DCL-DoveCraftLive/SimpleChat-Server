@@ -4,9 +4,9 @@ from core.server import ChatServer
 
 class Route(ABC):
 
-    def __init__(self, route_name):
+    def __init__(self, route_name, route):
         self.route_name = route_name
-        self.route = '/{0}'.format(route_name)
+        self.route = route
 
     @abstractmethod
     def on_post(self):
@@ -19,5 +19,8 @@ class Route(ABC):
 
 class TestRoute(Route):
 
-    def on_post(self):
-        return '<html><head /><body><p>111</p></body></html>'
+    def __init__(self):
+        super().__init__('test', '/test/<fsfs>')
+
+    def on_post(self, fsfs):
+        return '<html><head /><body><p>{0}</p></body></html>'.format(fsfs)

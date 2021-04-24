@@ -4,5 +4,5 @@ from core.server import ChatServer
 
 flask_ = Flask(__name__)
 
-TestRoute('test').register(flask_)
+TestRoute().register(flask_)
 ChatServer().run(flask_, debug=True)
