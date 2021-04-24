@@ -24,3 +24,8 @@ class TestRoute(Route):
 
     def on_post(self, fsfs):
         return '<html><head /><body><p>{0}</p></body></html>'.format(fsfs)
+
+
+class LoginRoute(Route):
+    # TODO(shoot@vancraft.cn): add login function
+    ...
