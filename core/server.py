@@ -1,3 +1,21 @@
+"""A simple social program.(SERVER)
+Copyright © 2021 DCL Team
+
+This file is part of SimpleChat-Server.
+
+SimpleChat-Server is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+SimpleChat-Server is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with SimpleChat-Server.  If not, see <https://www.gnu.org/licenses/>.
+"""
 from flask import Response
 from utils.singleton import Singleton
 from traceback import format_exc
@@ -22,12 +40,24 @@ class ServerAction(object):
 
 @Singleton
 class ChatServer(object):
+    flask_ = None
 
-    def run(self, flask_, *args, **kwargs):
-        flask_.run(*args, **kwargs)
+    def set_flask(self, flask_):
+        self.flask_ = flask_
 
-    def add_route(self, flask_, route=None, route_name=None, handler=None):
-        flask_.add_url_rule(route,
-                            route_name,
-                            ServerAction(handler),
-                            methods=['POST', 'GET'])
+    def run(self, *args, **kwargs):
+        if self.flask_ is None:
+            raise RuntimeError('Server Not Found!')
+        self.flask_.run(*args, **kwargs)
+
+    def add_route(self,
+                  route=None,
+                  route_name=None,
+                  handler=None,
+                  methods=['POST']):
+        if self.flask_ is None:
+            raise RuntimeError('Server Not Found!')
+        self.flask_.add_url_rule(route,
+                                 route_name,
+                                 ServerAction(handler),
+                                 methods=methods)
