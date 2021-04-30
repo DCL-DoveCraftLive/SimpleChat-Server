@@ -42,7 +42,7 @@ class TestRoute(Route):
         super().__init__('test', '/test/<fsfs>')
 
     def __call__(self, fsfs):
-        return '<html><head /><body><p>{0}</p></body></html>'.format(fsfs)
+        return f'<html><head /><body><p>{fsfs}</p></body></html>'
 
 
 class LoginRoute(Route):
@@ -55,3 +55,6 @@ class LoginRoute(Route):
         data = loads(data)
         if not ('username' in data or 'auth' in data):
             raise ValueError('Wrong Request Format!')
+        username, auth = data['username'], data['auth']
+        _ = username, auth
+        ...
