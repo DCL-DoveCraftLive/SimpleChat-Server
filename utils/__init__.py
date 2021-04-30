@@ -1,4 +1,4 @@
-"""A simple social program.(SERVER)
+"""A simple instant messaging app.(SERVER)
 Copyright © 2021 DCL Team
 
 This file is part of SimpleChat-Server.
