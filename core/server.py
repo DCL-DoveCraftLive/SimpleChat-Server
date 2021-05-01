@@ -31,8 +31,12 @@ class ServerAction(object):
         try:
             answer = self.action(*args, **kwargs)
             self.response = Response(answer, status=200, headers={})
-        except Exception:
-            self.response = Response(dumps({'error': format_exc()}),
+        except Exception as e:
+            self.response = Response(dumps({
+                'is_failed': True,
+                'exception': repr(e),
+                'trackback': format_exc(),
+            }),
                                      status=500,
                                      headers={})
         return self.response
