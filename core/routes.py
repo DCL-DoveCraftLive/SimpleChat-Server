@@ -19,7 +19,9 @@ along with SimpleChat-Server.  If not, see <https://www.gnu.org/licenses/>.
 from abc import ABC, abstractmethod
 from core.server import ChatServer
 from flask import request
-from json import loads
+from json import loads, dumps
+from requests import get, Response, post
+from utils.config_utils import ConfigParser
 
 
 class Route(ABC):
@@ -55,6 +57,28 @@ class LoginRoute(Route):
         data = loads(data)
         if not ('username' in data or 'auth' in data):
             raise ValueError('Wrong Request Format!')
-        username, auth = data['username'], data['auth']
-        _ = username, auth
+        username, password = data['username'], data['password']
+
+        # 请求用户salt(顺便也验证了用户是否存在)
+        url = f"{ConfigParser().get('AuthServer')}/salt/{username}"
+        response: Response = get(url)
+        response_data = response.json()
+        status = response_data['status']
+        if status != 1:
+            return dumps({
+                'is_successful': False,
+                'status': status,
+                'token': None,
+            })
+
+        # 请求验证
+        url = f"{ConfigParser().get('AuthServer')}/login"
+        headers = {
+            'Content-Type': 'application/json',
+        }
+        payload = {
+            'username': username,
+            'password': password,
+        }
+        response: Response = post(url, headers=headers, data=dumps(payload))
         ...

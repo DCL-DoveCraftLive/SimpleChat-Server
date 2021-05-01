@@ -25,21 +25,21 @@ from traceback import format_exc
 class ConfigParser(object):
 
     def __init__(self):
-        self.configData: dict
+        self.config_data: dict
         try:
             with open('config.yml') as f:
-                self.configData = full_load(f)
+                self.config_data = full_load(f)
         except Exception as e:
-            self.configData = {
+            self.config_data = {
                 'is_failed': True,
                 'exception': repr(e),
                 'traceback': format_exc(),
             }
 
     def get(self, key):
-        if 'is_failed' in self.configData:
-            if self.configData:
+        if 'is_failed' in self.config_data:
+            if self.config_data:
                 raise RuntimeError("Cannot Read From 'config.yml'!")
-        if key not in self.configData:
+        if key not in self.config_data:
             raise RuntimeError(f"Cannot Find Key '{key}'!")
-        return self.configData[key]
+        return self.config_data[key]
