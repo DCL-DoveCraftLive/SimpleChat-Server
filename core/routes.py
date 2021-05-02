@@ -22,6 +22,7 @@ from flask import request
 from json import loads, dumps
 from requests import get, Response, post
 from utils.config_utils import ConfigParser
+from utils.token_utils import Tokens
 
 
 class Route(ABC):
@@ -41,14 +42,14 @@ class Route(ABC):
 class TestRoute(Route):
 
     def __init__(self):
-        super().__init__('test', '/test/<fsfs>')
+        super().__init__('test', '/test')
 
-    def __call__(self, fsfs):
-        return f'<html><head /><body><p>{fsfs}</p></body></html>'
+    def __call__(self):
+        return str(Tokens().test())
 
 
 class LoginRoute(Route):
-    # TODO(shoot@vancraft.cn): finish login function
+
     def __init__(self):
         super().__init__('login', '/login')
 
@@ -64,10 +65,16 @@ class LoginRoute(Route):
         response: Response = get(url)
         response_data = response.json()
         status = response_data['status']
-        if status != 1:
+        if status == 0:
             return dumps({
-                'is_successful': False,
-                'status': status,
+                'status': 0,
+                'msg': 'Invalid Username!',
+                'token': None,
+            })
+        if not (status == 0 or status == 1):
+            return dumps({
+                'status': -1,
+                'msg': 'Invalid Status!',
                 'token': None,
             })
 
@@ -81,4 +88,22 @@ class LoginRoute(Route):
             'password': password,
         }
         response: Response = post(url, headers=headers, data=dumps(payload))
-        ...
+        response_data = response.json()
+        status = response_data['status']
+        if status == 1:
+            return dumps({
+                'status': 1,
+                'msg': 'Wrong Password!',
+                'token': None,
+            })
+        if not (status == 1 or status == 2):
+            return dumps({
+                'status': -1,
+                'msg': 'Invalid Status!',
+                'token': None,
+            })
+        return dumps({
+            'status': 2,
+            'msg': 'Success!',
+            'token': Tokens().generate(username)
+        })

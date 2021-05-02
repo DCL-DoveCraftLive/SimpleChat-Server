@@ -1,2 +1,2 @@
 # Example Config File
-AuthServer: http://frankmc.top:8080/api/v1
+AuthServer: http://localhost:8080/api/v1

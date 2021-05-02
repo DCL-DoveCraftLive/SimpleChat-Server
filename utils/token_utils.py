@@ -24,16 +24,37 @@ from hashlib import md5, sha1
 
 
 @Singleton
-class GenerateToken(object):
+class Tokens(object):
 
-    def generate(self, user_name):
-        unix_time = str(round(time.time(), 4))
+    def __init__(self):
+        self.tokens = {}
+
+    def generate(self, user_name: str):
+        unix_time = round(time.time(), 4)
         md5_salt = ''.join(
             random.sample(string.ascii_letters + string.digits, 8))
         sha1_salt = ''.join(
             random.sample(string.ascii_letters + string.digits, 8))
         token = sha1(
-            str(md5().update(
-                user_name.encode(encodings="UTF-8") + unix_time + md5_salt)) +
-            sha1_salt)
+            str(
+                md5((user_name + str(unix_time) +
+                     md5_salt).encode(encoding="utf-8")).hexdigest() +
+                sha1_salt).encode(encoding='utf-8')).hexdigest()
+        self.tokens[token] = [unix_time, user_name]
         return token
+
+    def check(self, token) -> bool:
+        if token not in self.tokens:
+            return False
+        if time.time() - self.tokens[token][0] > 21600.0:
+            return False
+        return True
+
+    def update(self, token):
+        if token not in self.tokens:
+            return False
+        self.tokens[token][0] = round(time.time(), 4)
+        return True
+
+    def test(self):
+        return self.tokens

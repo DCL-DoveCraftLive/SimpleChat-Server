@@ -17,8 +17,7 @@ You should have received a copy of the GNU General Public License
 along with SimpleChat-Server.  If not, see <https://www.gnu.org/licenses/>.
 """
 from utils.singleton import Singleton
-from yaml import full_load
-from traceback import format_exc
+from yaml import full_load, dump
 
 
 @Singleton
@@ -26,15 +25,8 @@ class ConfigParser(object):
 
     def __init__(self):
         self.config_data: dict
-        try:
-            with open('config.yml') as f:
-                self.config_data = full_load(f)
-        except Exception as e:
-            self.config_data = {
-                'is_failed': True,
-                'exception': repr(e),
-                'traceback': format_exc(),
-            }
+        with open('config.yml', 'r') as f:
+            self.config_data = full_load(f)
 
     def get(self, key):
         if 'is_failed' in self.config_data:
@@ -43,3 +35,11 @@ class ConfigParser(object):
         if key not in self.config_data:
             raise RuntimeError(f"Cannot Find Key '{key}'!")
         return self.config_data[key]
+
+    def __flush(self):
+        with open('config.yml', 'w') as f:
+            dump(self.config_data, f)
+
+    def set_(self, key, value):
+        self.config_data[key] = value
+        self.__flush()
