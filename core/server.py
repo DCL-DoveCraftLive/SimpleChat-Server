@@ -58,7 +58,9 @@ class ChatServer(object):
                   route=None,
                   route_name=None,
                   handler=None,
-                  methods=['POST']):
+                  methods=None):
+        if methods is None:
+            methods = ['POST']
         if self.flask_ is None:
             raise RuntimeError('Server Not Found!')
         self.flask_.add_url_rule(route,

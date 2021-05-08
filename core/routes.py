@@ -35,7 +35,9 @@ class Route(ABC):
     def __call__(self):
         raise NotImplementedError
 
-    def register(self, methods=['POST']):
+    def register(self, methods=None):
+        if methods is None:
+            methods = ['POST']
         ChatServer().add_route(self.route, self.route_name, self, methods)
 
 

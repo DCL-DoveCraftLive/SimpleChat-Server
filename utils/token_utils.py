@@ -16,11 +16,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with SimpleChat-Server.  If not, see <https://www.gnu.org/licenses/>.
 """
-from utils.singleton import Singleton
-import time
 import random
 import string
+import time
 from hashlib import md5, sha1
+
+from utils.singleton import Singleton
 
 
 @Singleton
