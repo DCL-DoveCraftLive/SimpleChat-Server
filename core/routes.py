@@ -17,10 +17,11 @@ You should have received a copy of the GNU General Public License
 along with SimpleChat-Server.  If not, see <https://www.gnu.org/licenses/>.
 """
 from abc import ABC, abstractmethod
-from core.server import ChatServer
-from flask import request
 from json import loads, dumps
+
+from flask import request
 from requests import get, Response, post
+
 from utils.config_utils import ConfigParser
 from utils.token_utils import Tokens
 
@@ -102,9 +103,14 @@ class LoginRoute(Route):
         return dumps({
             'status': 2,
             'msg': 'Success!',
-            'token': Tokens().generate(username)
+            'token': Tokens().generate(username),
         })
 
 
-class GetMsgRoute(Route, ABC):
-    ...
+class GetMsgRoute(Route):
+
+    def __init__(self):
+        super().__init__('get_msg', '/get_msg')
+
+    def __call__(self):
+        ...

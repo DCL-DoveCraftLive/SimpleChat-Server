@@ -22,13 +22,20 @@ import time
 from hashlib import md5, sha1
 
 from utils.singleton import Singleton
+from utils.sqlite_utils import SqlParser
 
 
 @Singleton
 class Tokens(object):
 
     def __init__(self):
-        self.tokens = {}
+        SqlParser().set_target('mem').init().execute(
+            '''CREATE TABLE IF NOT EXISTS TOKENS
+              (
+                  TOKEN     TEXT PRIMARY KEY NOT NULL,
+                  TIME      FLOAT            NOT NULL,
+                  USER_NAME TEXT             NOT NULL
+              );''').end()
 
     def generate(self, user_name: str):
         unix_time = round(time.time(), 4)
@@ -42,6 +49,11 @@ class Tokens(object):
                      md5_salt).encode(encoding="utf-8")).hexdigest() +
                 sha1_salt).encode(encoding='utf-8')).hexdigest()
         self.tokens[token] = [unix_time, user_name]
+        sql: SqlParser = SqlParser()
+        sql.set_target('mem').init().execute(
+            f'''INSERT INTO TOKENS (TOKEN,     TIME,        USER_NAME)
+                            VALUES ('{token}', {unix_time}, '{user_name}');'''
+        ).end()
         return token
 
     def check(self, token) -> bool:
