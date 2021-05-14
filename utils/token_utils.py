@@ -49,8 +49,7 @@ class Tokens(object):
                      md5_salt).encode(encoding="utf-8")).hexdigest() +
                 sha1_salt).encode(encoding='utf-8')).hexdigest()
         self.tokens[token] = [unix_time, user_name]
-        sql: SqlParser = SqlParser()
-        sql.set_target('mem').init().execute(
+        SqlParser().set_target('mem').init().execute(
             f'''INSERT INTO TOKENS (TOKEN,     TIME,        USER_NAME)
                             VALUES ('{token}', {unix_time}, '{user_name}');'''
         ).end()
