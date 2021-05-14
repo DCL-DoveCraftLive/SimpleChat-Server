@@ -22,8 +22,7 @@ from core.server import ChatServer
 
 flask_ = Flask(__name__)
 
-ChatServer().set_flask(flask_)
-
-TestRoute().register(methods=['GET'])
-LoginRoute().register()
+server: ChatServer = ChatServer()
+server.set_flask(flask_).register(TestRoute()).register(LoginRoute())
+server.run(debug=True)
 ChatServer().run(debug=True)
