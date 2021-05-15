@@ -25,6 +25,12 @@ from utils.singleton import Singleton
 from utils.sqlite_utils import SqlParser
 
 
+def get_tokens():
+    result = SqlParser().set_target('mem').init().execute(
+        '''SELECT * FROM TOKENS;''', is_query=True).end().query_result
+    return result
+
+
 @Singleton
 class Tokens(object):
 
