@@ -26,8 +26,8 @@ from utils.singleton import Singleton
 class SqlParser(object):
 
     def __init__(self):
-        # 可以为'msg'或'mem'
-        self.target_db: str = 'msg'
+        # 可以为'file'或'mem'
+        self.target_db: str = 'file'
         self.__initialized = False
         self.db_connection = None
         self.db_cursor = None
@@ -43,9 +43,10 @@ class SqlParser(object):
     def init(self, db_name=None):
         if self.target_db == 'mem' and db_name is not None:
             raise ValueError('Invalid Name!')
-        self.db_connection: sqlite3.Connection = sqlite3.connect(
-            ':memory:' if self.target_db ==
-            'mem' else f'data{os.sep}{db_name}.db')
+        target = ':memory:'
+        if self.target_db == 'file':
+            target = f'data{os.sep}{db_name}.db'
+        self.db_connection: sqlite3.Connection = sqlite3.connect(target)
         self.db_cursor: sqlite3.Cursor = self.db_connection.cursor()
         self.__initialized = True
         return self
