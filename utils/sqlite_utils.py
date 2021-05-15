@@ -34,7 +34,7 @@ class SqlParser(object):
         self.query_result = None
 
     def set_target(self, target):
-        if target not in ['msg', 'mem']:
+        if target not in ['file', 'mem']:
             raise RuntimeError('Unknown Database!')
         if not target == self.target_db:
             self.target_db = target
