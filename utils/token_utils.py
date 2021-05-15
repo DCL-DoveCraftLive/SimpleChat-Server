@@ -25,8 +25,8 @@ from utils.singleton import Singleton
 from utils.sqlite_utils import SqlParser
 
 
-def get_tokens():
-    result = SqlParser().set_target('mem').init().execute(
+def get_tokens() -> list:
+    result = SqlParser().init('token').execute(
         '''SELECT * FROM TOKENS;''', is_query=True).end().query_result
     return result
 
@@ -35,13 +35,13 @@ def get_tokens():
 class Tokens(object):
 
     def __init__(self):
-        SqlParser().set_target('mem').init().execute(
-            '''CREATE TABLE IF NOT EXISTS TOKENS
+        SqlParser().init('token').execute('''CREATE TABLE IF NOT EXISTS TOKENS
               (
                   TOKEN     TEXT PRIMARY KEY NOT NULL,
                   TIME      FLOAT            NOT NULL,
                   USER_NAME TEXT             NOT NULL
               );''').end()
+        self.tokens = get_tokens()
 
     def generate(self, user_name: str):
         unix_time = round(time.time(), 4)
@@ -54,25 +54,30 @@ class Tokens(object):
                 md5((user_name + str(unix_time) +
                      md5_salt).encode(encoding="utf-8")).hexdigest() +
                 sha1_salt).encode(encoding='utf-8')).hexdigest()
-        self.tokens[token] = [unix_time, user_name]
-        SqlParser().set_target('mem').init().execute(
-            f'''INSERT INTO TOKENS (TOKEN,     TIME,        USER_NAME)
-                            VALUES ('{token}', {unix_time}, '{user_name}');'''
-        ).end()
+        SqlParser().init('token').execute(
+            f'''INSERT INTO TOKENS (TOKEN, TIME, USER_NAME)
+                            VALUES (?,     ?,    ?);''',
+            data=(token, unix_time, user_name)).end()
+        self.tokens = get_tokens()
         return token
 
     def check(self, token) -> bool:
-        if token not in self.tokens:
-            return False
-        if time.time() - self.tokens[token][0] > 21600.0:
-            return False
-        return True
+        self.tokens = get_tokens()
+        for i in self.tokens:
+            if token in i:
+                if time.time() - i[1] > 21600.0:
+                    return True
+        return False
 
-    def update(self, token):
-        if token not in self.tokens:
-            return False
-        self.tokens[token][0] = round(time.time(), 4)
+    def update(self, token) -> bool:
+        self.tokens = get_tokens()
+        for i in self.tokens:
+            if token in i:
+                SqlParser().init('token').execute(
+                    '''UPDATE TOKENS SET TIME = ? WHERE TOKEN = ?;''',
+                    data=(round(time.time(), 4), token))
         return True
 
     def test(self):
+        self.tokens = get_tokens()
         return self.tokens

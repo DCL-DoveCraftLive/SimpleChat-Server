@@ -26,44 +26,34 @@ from utils.singleton import Singleton
 class SqlParser(object):
 
     def __init__(self):
-        # 可以为'file'或'mem'
-        self.target_db: str = 'file'
         self.__initialized = False
         self.db_connection = None
         self.db_cursor = None
         self.query_result = None
 
-    def set_target(self, target):
-        if target not in ['file', 'mem']:
-            raise RuntimeError('Unknown Database!')
-        if not target == self.target_db:
-            self.target_db = target
-        return self
-
     def init(self, db_name=None):
-        if self.target_db == 'mem' and db_name is not None:
+        if db_name is None:
             raise ValueError('Invalid Name!')
-        target = ':memory:'
-        if self.target_db == 'file':
-            target = f'data{os.sep}{db_name}.db'
+        target = f'data{os.sep}{db_name}.db'
         self.db_connection: sqlite3.Connection = sqlite3.connect(target)
         self.db_cursor: sqlite3.Cursor = self.db_connection.cursor()
         self.__initialized = True
         return self
 
     def end(self):
+        print(1)
         self.db_connection.commit()
         self.db_cursor.close()
         self.db_connection.close()
         self.db_cursor, self.db_connection = None, None
         self.__initialized = False
-        if self.query_result is not None:
-            return self
-        else:
-            self.query_result = None
+        return self
 
-    def execute(self, statement, is_query=False):
-        self.db_cursor.execute(statement)
+    def execute(self, statement, is_query=False, data=None):
+        if data is None:
+            self.db_cursor.execute(statement)
+        else:
+            self.db_cursor.execute(statement, data)
         if is_query:
             self.query_result = self.db_cursor.fetchall()
         return self
