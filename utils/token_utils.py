@@ -54,30 +54,30 @@ class Tokens(object):
         self.sql.init('token').execute(
             f'''INSERT INTO TOKENS (TOKEN, TIME, USER_NAME)
                             VALUES (?,     ?,    ?);''',
-            data=(token, unix_time, user_name)).end()
+            data=[token, unix_time, user_name]).end()
         return token
 
     def check(self, token) -> bool:
-        return time.time() - self.sql.init('token').execute(
+        return round(time.time(), 4) - self.sql.init('token').execute(
             '''SELECT * FROM TOKENS WHERE TOKEN = ?''',
             is_query=True,
-            data=tuple(token)).end().query_result[1] > 21600.0 if len(
+            data=[token]).end().query_result[0][1] < 21600.0 if len(
                 self.sql.init('token').execute(
                     '''SELECT * FROM TOKENS WHERE TOKEN = ?;''',
                     is_query=True,
-                    data=tuple(token)).end().query_result) else False
+                    data=[token]).end().query_result) else False
 
     def update(self, token) -> bool:
         if not len(
                 self.sql.init('token').execute(
                     '''SELECT * FROM TOKENS WHERE TOKEN = ?;''',
                     is_query=True,
-                    data=tuple(token)).end().query_result):
+                    data=[token]).end().query_result):
             return False
         self.sql.init('token').execute(
             '''UPDATE TOKENS SET TIME = ? WHERE TOKEN = ?;''',
-            data=(round(time.time(), 4), token)).end()
+            data=[round(time.time(), 4), token]).end()
         return True
 
-    def test(self):
+    def test_all_tokens(self):
         return self.tokens

@@ -18,12 +18,12 @@ along with SimpleChat-Server.  If not, see <https://www.gnu.org/licenses/>.
 """
 from flask import Flask
 
-from core.routes import TestRoute, LoginRoute
+from core.routes import TestRoute, LoginRoute, CheckRoute
 from core.server import ChatServer
 
 flask_ = Flask(__name__)
 
 server: ChatServer = ChatServer()
-server.set_flask(flask_).register(TestRoute(),
-                                  methods=['GET']).register(LoginRoute())
+server.set_flask(flask_).register(TestRoute(), methods=['GET']).register(
+    LoginRoute()).register(CheckRoute(), methods=['GET'])
 server.run(debug=True)

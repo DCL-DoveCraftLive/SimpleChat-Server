@@ -33,8 +33,8 @@ class Route(ABC):
         self.route = route
 
     @abstractmethod
-    def __call__(self):
-        raise NotImplementedError
+    def __call__(self, *args, **kwargs):
+        raise NotImplementedError()
 
 
 class TestRoute(Route):
@@ -43,7 +43,18 @@ class TestRoute(Route):
         super().__init__('test', '/test')
 
     def __call__(self):
-        return str(Tokens().test())
+        return str(Tokens().test_all_tokens())
+
+
+class CheckRoute(Route):
+
+    def __init__(self):
+        super().__init__('check_test', '/check/<token>')
+
+    def __call__(self, token):
+        a: Tokens = Tokens()
+        b = a.check(token)
+        return str(b)
 
 
 class LoginRoute(Route):
@@ -113,4 +124,4 @@ class GetMsgRoute(Route):
         super().__init__('get_msg', '/get_msg')
 
     def __call__(self):
-        ...
+        raise NotImplementedError()

@@ -41,7 +41,6 @@ class SqlParser(object):
         return self
 
     def end(self):
-        print(1)
         self.db_connection.commit()
         self.db_cursor.close()
         self.db_connection.close()
