@@ -25,23 +25,22 @@ from utils.singleton import Singleton
 from utils.sqlite_utils import SqlParser
 
 
-def get_tokens() -> list:
-    result = SqlParser().init('token').execute(
-        '''SELECT * FROM TOKENS;''', is_query=True).end().query_result
-    return result
-
-
 @Singleton
 class Tokens(object):
 
     def __init__(self):
-        SqlParser().init('token').execute('''CREATE TABLE IF NOT EXISTS TOKENS
+        self.sql: SqlParser = SqlParser()
+        self.sql.init('token').execute('''CREATE TABLE IF NOT EXISTS TOKENS
               (
                   TOKEN     TEXT PRIMARY KEY NOT NULL,
                   TIME      FLOAT            NOT NULL,
                   USER_NAME TEXT             NOT NULL
               );''').end()
-        self.tokens = get_tokens()
+
+    @property
+    def tokens(self):
+        return self.sql.init('token').execute('''SELECT * FROM TOKENS;''',
+                                              is_query=True).end().query_result
 
     def generate(self, user_name: str):
         unix_time = round(time.time(), 4)
@@ -49,35 +48,36 @@ class Tokens(object):
             random.sample(string.ascii_letters + string.digits, 8))
         sha1_salt = ''.join(
             random.sample(string.ascii_letters + string.digits, 8))
-        token = sha1(
-            str(
-                md5((user_name + str(unix_time) +
-                     md5_salt).encode(encoding="utf-8")).hexdigest() +
-                sha1_salt).encode(encoding='utf-8')).hexdigest()
-        SqlParser().init('token').execute(
+        token = sha1((md5((user_name + str(unix_time) +
+                           md5_salt).encode(encoding="utf-8")).hexdigest() +
+                      sha1_salt).encode(encoding='utf-8')).hexdigest()
+        self.sql.init('token').execute(
             f'''INSERT INTO TOKENS (TOKEN, TIME, USER_NAME)
                             VALUES (?,     ?,    ?);''',
             data=(token, unix_time, user_name)).end()
-        self.tokens = get_tokens()
         return token
 
     def check(self, token) -> bool:
-        self.tokens = get_tokens()
-        for i in self.tokens:
-            if token in i:
-                if time.time() - i[1] > 21600.0:
-                    return True
-        return False
+        return time.time() - self.sql.init('token').execute(
+            '''SELECT * FROM TOKENS WHERE TOKEN = ?''',
+            is_query=True,
+            data=tuple(token)).end().query_result[1] > 21600.0 if len(
+                self.sql.init('token').execute(
+                    '''SELECT * FROM TOKENS WHERE TOKEN = ?;''',
+                    is_query=True,
+                    data=tuple(token)).end().query_result) else False
 
     def update(self, token) -> bool:
-        self.tokens = get_tokens()
-        for i in self.tokens:
-            if token in i:
-                SqlParser().init('token').execute(
-                    '''UPDATE TOKENS SET TIME = ? WHERE TOKEN = ?;''',
-                    data=(round(time.time(), 4), token))
+        if not len(
+                self.sql.init('token').execute(
+                    '''SELECT * FROM TOKENS WHERE TOKEN = ?;''',
+                    is_query=True,
+                    data=tuple(token)).end().query_result):
+            return False
+        self.sql.init('token').execute(
+            '''UPDATE TOKENS SET TIME = ? WHERE TOKEN = ?;''',
+            data=(round(time.time(), 4), token)).end()
         return True
 
     def test(self):
-        self.tokens = get_tokens()
         return self.tokens
