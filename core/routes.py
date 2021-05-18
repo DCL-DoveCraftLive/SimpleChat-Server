@@ -49,11 +49,22 @@ class TestRoute(Route):
 class CheckRoute(Route):
 
     def __init__(self):
-        super().__init__('check_test', '/check/<token>')
+        super().__init__('check_test', '/check/<string:token>')
 
     def __call__(self, token):
         a: Tokens = Tokens()
         b = a.check(token)
+        return str(b)
+
+
+class UpdateRoute(Route):
+
+    def __init__(self):
+        super().__init__('update_test', '/update/<string:token>')
+
+    def __call__(self, token):
+        a: Tokens = Tokens()
+        b = a.update(token)
         return str(b)
 
 
