@@ -43,12 +43,18 @@ class Tokens(object):
                                               is_query=True).end().query_result
 
     def generate(self, user_name: str):
-        '''
-        token生成逻辑：
-        1.生成两个盐
-        2.对用户名+当前的unix时间+盐进行一次md5
-        3.对上一次md5的结果加上第二个盐进行一次sha1
-        '''
+        """生成一个token
+
+        token生成逻辑:
+          1.生成两个盐;\n
+          2.对用户名+当前的unix时间+盐进行一次md5;\n
+          3.对上一次md5的结果加上第二个盐进行一次sha1.
+
+        Args:
+            user_name (str): 要生成token的用户名.
+        Returns:
+            一个字符串格式的token.
+        """
         unix_time = round(time.time(), 4)
         md5_salt = ''.join(
             random.sample(string.ascii_letters + string.digits, 8))
