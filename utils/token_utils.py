@@ -116,7 +116,7 @@ class Tokens(object):
             user_name = self.sql.init('token').execute(
                 '''SELECT USER_NAME FROM TOKENS WHERE TOKEN = ?;''',
                 is_query=True,
-                data=[token]).end().query_result
+                data=[token]).end().query_result[0][0]
             self.invalidate(token)
             return self.generate(user_name)
         else:
