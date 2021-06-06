@@ -21,8 +21,11 @@ import string
 import time
 from hashlib import md5, sha1
 
+from utils.config_utils import ConfigParser
 from utils.singleton import Singleton
 from utils.sqlite_utils import SqlParser
+
+TOKEN_EXPIRATION_TIME = ConfigParser().get('TokenExpirationTime')
 
 
 @Singleton
@@ -71,15 +74,16 @@ class Tokens(object):
 
     def check(self, token) -> bool:
         return round(time.time(), 4) - self.sql.init('token').execute(
-            '''SELECT * FROM TOKENS WHERE TOKEN = ?''',
+            '''SELECT TIME FROM TOKENS WHERE TOKEN = ?''',
             is_query=True,
-            data=[token]).end().query_result[0][1] < 21600.0 if len(
-                self.sql.init('token').execute(
-                    '''SELECT * FROM TOKENS WHERE TOKEN = ?;''',
-                    is_query=True,
-                    data=[token]).end().query_result) else False
+            data=[token
+                 ]).end().query_result[0][0] < TOKEN_EXPIRATION_TIME if len(
+                     self.sql.init('token').execute(
+                         '''SELECT * FROM TOKENS WHERE TOKEN = ?;''',
+                         is_query=True,
+                         data=[token]).end().query_result) else False
 
-    def update(self, token) -> bool:
+    def invalidate(self, token) -> bool:
         if not len(
                 self.sql.init('token').execute(
                     '''SELECT * FROM TOKENS WHERE TOKEN = ?;''',
@@ -87,9 +91,39 @@ class Tokens(object):
                     data=[token]).end().query_result):
             return False
         self.sql.init('token').execute(
-            '''UPDATE TOKENS SET TIME = ? WHERE TOKEN = ?;''',
-            data=[round(time.time(), 4), token]).end()
+            '''DELETE FROM TOKENS WHERE TOKEN = ?;''', data=[token]).end()
         return True
+
+    def update(self, token) -> str:
+        """更新一个token
+
+        若token不存在,返回"Unknown Token!".\n
+        若token已过期,返回"Invalid Token!",并将无效token删除.\n
+        若token未过期,更新token时间.
+
+        Args:
+            token (str): 要更新的token.
+        Returns:
+            "Unknown Token!"或"Invalid Token!"或一个新token
+        """
+        if not len(
+                self.sql.init('token').execute(
+                    '''SELECT * FROM TOKENS WHERE TOKEN = ?;''',
+                    is_query=True,
+                    data=[token]).end().query_result):
+            return 'Unknown Token!'
+        if self.check(token):
+            user_name = self.sql.init('token').execute(
+                '''SELECT USER_NAME FROM TOKENS WHERE TOKEN = ?;''',
+                is_query=True,
+                data=[token]).end().query_result
+            self.invalidate(token)
+            return self.generate(user_name)
+        else:
+            self.sql.init('token').execute(
+                '''UPDATE TOKENS SET TIME = ? WHERE TOKEN = ?;''',
+                data=[round(time.time(), 4), token]).end()
+            return 'Updated!'
 
     def test_all_tokens(self):
         return self.tokens
