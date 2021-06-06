@@ -22,6 +22,7 @@ from json import loads, dumps
 from flask import request
 from requests import get, Response, post
 
+from core.message import Messages
 from utils.config_utils import ConfigParser
 from utils.token_utils import Tokens
 
@@ -129,10 +130,32 @@ class LoginRoute(Route):
         })
 
 
-class GetMsgRoute(Route):
+class DefaultGetMsgRoute(Route):
 
     def __init__(self):
-        super().__init__('get_msg', '/get_msg')
+        super().__init__('default_get_msg', '/get_msg')
 
     def __call__(self):
-        raise NotImplementedError()
+        return str(Messages().get(100))
+
+
+class CustomGetMsgRoute(Route):
+
+    def __init__(self):
+        super().__init__('custom_get_msg', '/get_msg/<int:num>')
+
+    def __call__(self, num):
+        return str(Messages().get(num))
+
+
+class SendMsgRoute(Route):
+
+    def __init__(self):
+        super().__init__('send_msg', '/send')
+
+    def __call__(self):
+        data = request.get_data().decode('utf-8')
+        data = loads(data)
+        if not ('token' in data and 'msg' in data and 'group_id' in data):
+            raise ValueError('Wrong Request Format!')
+        Messages().send(data['msg'], data['group_id'], data['token'])
